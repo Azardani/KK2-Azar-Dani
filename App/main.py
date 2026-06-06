@@ -30,6 +30,21 @@ async def upload_data(file: UploadFile = File(...)):
         }
     }
 
+@app.get("/data/stats")
+def get_stats():
+
+    if data.current_df is None:
+        return {"error": "No dataset uploaded"}
+
+    try:
+        return data.get_summary(
+            data.current_df
+        )
+
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
 
 @app.post("/ai/ask")
 def ask_ai(request: QuestionRequest):
