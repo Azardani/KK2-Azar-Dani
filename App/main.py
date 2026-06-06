@@ -1,6 +1,7 @@
 import pandas as pd
 from fastapi import FastAPI, UploadFile, File
-
+from App.chain.pipeline import oracle_chain
+from App.schemas import PromptBuilderInput
 from App import data
 from App.schemas import QuestionRequest, QuestionResponse
 
@@ -18,7 +19,7 @@ async def upload_data(file: UploadFile = File(...)):
     if not file.filename.endswith(".csv"):
         return {"error": "Only CSV files are allowed"}
 
-    data.current_df = pd.read_csv(file.file)
+    data.current_df = pd.read_csv(file.file, sep=";")
 
     return {
         "rows": len(data.current_df),
@@ -30,20 +31,27 @@ async def upload_data(file: UploadFile = File(...)):
     }
 
 
-@app.get("/data/stats")
-def get_stats():
+@app.post("/ai/ask")
+def ask_ai(request: QuestionRequest):
 
     if data.current_df is None:
         return {"error": "No dataset uploaded"}
 
-    return data.current_df.describe().to_dict()
+    summary = data.get_summary(
+        data.current_df
+    )
 
+    chain_input = PromptBuilderInput(
+        question=request.question,
+        stats=summary,
+        most_expensive=summary["most_expensive"]
+    )
 
-@app.post("/ai/ask")
-def ask_ai(request: QuestionRequest):
+    result = oracle_chain.invoke(chain_input)
 
     return QuestionResponse(
         question=request.question,
-        answer="Din Mammaaaaaaaa.",
-        model="FakeModel"
+        answer=result.answer,
+        model="SmolLM2-135M-Instruct"
     )
+    
