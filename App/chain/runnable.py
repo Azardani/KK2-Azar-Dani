@@ -22,16 +22,6 @@ class RunnableSequence:
     def invoke(self, input):
         result = self.first.invoke(input)
         return self.second.invoke(result)
-    
-class RunnableSequence:
-
-    def __init__(self, first, second):
-        self.first = first
-        self.second = second
-
-    def invoke(self, input):
-        result = self.first.invoke(input)
-        return self.second.invoke(result)
 
     def __or__(self, other):
         return RunnableSequence(self, other)

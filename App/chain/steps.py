@@ -27,9 +27,13 @@ class PromptBuilder(
 Question: {input.question}
 
 Facts:
+{input.stats}
 
-Most expensive car:
-{input.stats["most_expensive"]}
+Answer using ONLY the provided facts.
+Do not make assumptions.
+Do not add extra information.
+Write one short sentence.
+dont say "in the world"
 
 Answer:
 """
@@ -50,7 +54,7 @@ class LLMRunner(
 
         result = generator(
             input.prompt,
-            max_new_tokens=100,
+            max_new_tokens=30,
             do_sample=False
         )
 

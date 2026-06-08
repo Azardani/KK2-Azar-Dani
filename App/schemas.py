@@ -22,7 +22,6 @@ class QuestionResponse(BaseModel):
 class PromptBuilderInput(BaseModel):
     question: str
     stats: dict
-    most_expensive: dict
 
 
 class PromptBuilderOutput(BaseModel):

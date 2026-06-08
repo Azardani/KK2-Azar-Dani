@@ -19,15 +19,33 @@ async def upload_data(file: UploadFile = File(...)):
     if not file.filename.endswith(".csv"):
         return {"error": "Only CSV files are allowed"}
 
-    data.current_df = pd.read_csv(file.file, sep=";")
+    data.current_df = pd.read_csv(
+        file.file,
+        sep=";"
+    )
+
+    data.current_df["Price"] = pd.to_numeric(
+        data.current_df["Price"],
+        errors="coerce"
+    )
+
+    data.current_df["Mileage"] = pd.to_numeric(
+        data.current_df["Mileage"],
+        errors="coerce"
+    )
+
+    data.current_df["Year"] = pd.to_numeric(
+        data.current_df["Year"],
+        errors="coerce"
+    )
+
+    data.current_df = data.current_df.dropna(
+        subset=["Price", "Mileage", "Year"]
+    )
 
     return {
         "rows": len(data.current_df),
-        "columns": list(data.current_df.columns),
-        "dtypes": {
-            col: str(dtype)
-            for col, dtype in data.current_df.dtypes.items()
-        }
+        "columns": list(data.current_df.columns)
     }
 
 @app.get("/data/stats")
@@ -56,10 +74,32 @@ def ask_ai(request: QuestionRequest):
         data.current_df
     )
 
+    question = request.question.lower()
+
+    if "expensive" in question:
+        fact = summary["most_expensive"]
+
+    elif "mileage" in question:
+        fact = summary["most_miles"]
+
+    elif "cheapest" in question:
+        fact = summary["cheapest"]
+    
+    elif "least miles" in question or "low" in question:
+        fact = summary["least_miles"]
+
+    elif "oldest" in question or "old" in question:
+        fact = summary["oldest"]
+
+    elif "newest" in question or "new" in question:
+        fact = summary["newest"]
+
+    else:
+        fact = summary
+
     chain_input = PromptBuilderInput(
         question=request.question,
-        stats=summary,
-        most_expensive=summary["most_expensive"]
+        stats=fact
     )
 
     result = oracle_chain.invoke(chain_input)
@@ -69,4 +109,3 @@ def ask_ai(request: QuestionRequest):
         answer=result.answer,
         model="SmolLM2-135M-Instruct"
     )
-    
