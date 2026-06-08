@@ -18,7 +18,7 @@ def test_upload_wrong_file_type():
         }
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 400
     assert response.json() == {
-        "error": "Only CSV files are allowed"
+        "detail": "Only CSV files are allowed"
     }

@@ -10,7 +10,7 @@ def test_stats_without_dataset():
 
     data.current_df = None
     response = client.get("/data/stats")
-    assert response.status_code == 200
+    assert response.status_code == 404
     assert response.json() == {
-        "error": "No dataset uploaded"
+        "detail": "No dataset to be read"
     }

@@ -4,7 +4,7 @@ from App.chain.pipeline import oracle_chain
 from App.schemas import PromptBuilderInput
 from App import data
 from App.schemas import QuestionRequest, QuestionResponse
-
+from fastapi import FastAPI, UploadFile, File, HTTPException
 app = FastAPI()
 
 
@@ -17,7 +17,10 @@ def health():
 async def upload_data(file: UploadFile = File(...)):
 
     if not file.filename.endswith(".csv"):
-        return {"error": "Only CSV files are allowed"}
+        raise HTTPException(
+        status_code=400,
+        detail="Only CSV files are allowed"
+    )
 
     data.current_df = pd.read_csv(
         file.file,
@@ -52,7 +55,10 @@ async def upload_data(file: UploadFile = File(...)):
 def get_stats():
 
     if data.current_df is None:
-        return {"error": "No dataset uploaded"}
+        raise HTTPException(
+            status_code=404,
+            detail="No dataset to be read"
+        )
 
     try:
         return data.get_summary(
